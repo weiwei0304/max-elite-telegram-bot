@@ -1,0 +1,27 @@
+# 環境變數與敏感資訊（絕對不要 commit）
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+*.env
+
+# Node 依賴
+node_modules/
+
+# 若之後用 Python 可取消註解
+# __pycache__/
+# .venv/
+# venv/
+# *.pyc
+
+# 系統與編輯器
+.DS_Store
+.idea/
+.vscode/
+*.log
+npm-debug.log*
+
+# 建置輸出（之後有 React 時會用到）
+dist/
+build/
