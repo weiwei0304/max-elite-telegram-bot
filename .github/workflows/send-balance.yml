@@ -1,6 +1,6 @@
 name: Send Balance to Telegram
 
-n:
+on:
   schedule:
     # 每 2 小時整點執行（UTC），對應台灣時間 8、10、12、14… 點
     - cron: "0 */2 * * *"
