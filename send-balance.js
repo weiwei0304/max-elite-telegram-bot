@@ -50,5 +50,16 @@ async function sendBalance() {
   }
 }
 
-sendBalance();
-setInterval(sendBalance, 10 * 60 * 1000);
+const runOnce = process.env.RUN_ONCE === "1";
+
+if (runOnce) {
+  sendBalance()
+    .then(() => process.exit(0))
+    .catch((err) => {
+      console.error("錯誤:", err.message);
+      process.exit(1);
+    });
+} else {
+  sendBalance();
+  setInterval(sendBalance, 10 * 60 * 1000);
+}

@@ -1,0 +1,25 @@
+---
+description: MAX 精英賽 Telegram 機器人專案：目標、技術棧與約定
+alwaysApply: true
+---
+
+# 專案概述
+
+- **名稱**：max-elite-telegram-bot
+- **目標**：因應 MAX 8 週年精英組競賽，定時推送 MAX 帳戶餘額與市價到 Telegram；之後擴充為學習專案（Python 爬蟲／情緒、NestJS、React+TS 儀表板），全部使用免費方案。
+
+# 技術棧（現況與規劃）
+
+- **現有**：Node.js、dotenv、max-exchange-api-node、Telegram Bot API；本機 `send-balance.js` 每 10 分鐘發送餘額+市價。
+- **規劃**：Python（爬新聞、情緒／輕量模型）、NestJS（後端 API、定時任務）、React+TS（儀表板）；部署用 GitHub Actions、Vercel、Render、Supabase/Neon，皆免費。
+
+# 約定與習慣
+
+- 金鑰與敏感資訊：僅放在 `.env` 或 GitHub Secrets，絕不寫進程式碼或 commit。
+- try-catch：先寫 `try { ... } catch (err) { console.error('錯誤:', err.message); }` 骨架，再在 try 內填邏輯；變數名從文件複製避免拼錯（如 `accessKey`、`max`）。
+- 新增功能時，優先考慮「完全免費」方案與各服務的免費額度（例如 Actions 排程勿過密）。
+
+# 重要檔案
+
+- `send-balance.js`：讀 .env → 呼叫 MAX 私人 API 取餘額、公開 API 取市價 → 組訊息 → 發 Telegram；含 setInterval 每 10 分鐘。上線時可改為「只執行一次」由 GitHub Actions 或 Nest 排程觸發。
+- `.env`：TELEGRAM_BOT_TOKEN、TELEGRAM_CHAT_ID、MAX_ACCESS_KEY、MAX_SECRET_KEY（已列入 .gitignore）。

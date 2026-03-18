@@ -1,0 +1,28 @@
+name: Send Balance to Telegram
+
+n:
+  schedule:
+    # 每 2 小時整點執行（UTC），對應台灣時間 8、10、12、14… 點
+    - cron: "0 */2 * * *"
+  workflow_dispatch: # 手動觸發，方便測試
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - name: Install dependencies
+        run: npm ci
+      - name: Run send-balance (once)
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          MAX_ACCESS_KEY: ${{ secrets.MAX_ACCESS_KEY }}
+          MAX_SECRET_KEY: ${{ secrets.MAX_SECRET_KEY }}
+          RUN_ONCE: "1"
+        run: node send-balance.js
