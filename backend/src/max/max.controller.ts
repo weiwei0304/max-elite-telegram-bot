@@ -25,6 +25,7 @@ export class MaxController {
   @Get('telegram/message')
   async getTelegramMessage() {
     const message = await this.maxService.formatTelegramMessage();
+    console.log('[API] /telegram/message called at', new Date().toISOString());
     return { message };
   }
 }
