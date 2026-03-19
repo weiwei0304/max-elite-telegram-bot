@@ -5,6 +5,12 @@
 .env.development
 .env.production
 *.env
+backend/.env
+**/.env
+# 金鑰、憑證檔（若之後有放本機）
+*.pem
+*.key
+*-credentials.json
 
 # Node 依賴
 node_modules/

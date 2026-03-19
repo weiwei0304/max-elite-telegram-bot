@@ -15,4 +15,16 @@ export class MaxController {
     const data = await this.maxService.getTickers();
     return { data };
   }
+
+  @Get('snapshot')
+  async getSnapshot() {
+    const data = await this.maxService.getSnapshot();
+    return { data };
+  }
+
+  @Get('telegram/message')
+  async getTelegramMessage() {
+    const message = await this.maxService.formatTelegramMessage();
+    return { message };
+  }
 }
