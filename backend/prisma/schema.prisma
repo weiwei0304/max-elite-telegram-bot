@@ -1,0 +1,26 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model BalanceSnapshot {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+
+  // 幣種餘額（TWD 換算）
+  usdtBalance Float
+  usdtValue   Float
+
+  btcBalance  Float
+  btcPrice    Float
+  btcValue    Float
+
+  ethBalance  Float
+  ethPrice    Float
+  ethValue    Float
+
+  totalValue  Float
+}

@@ -1,0 +1,16 @@
+-- CreateTable
+CREATE TABLE "BalanceSnapshot" (
+    "id" SERIAL NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "usdtBalance" DOUBLE PRECISION NOT NULL,
+    "usdtValue" DOUBLE PRECISION NOT NULL,
+    "btcBalance" DOUBLE PRECISION NOT NULL,
+    "btcPrice" DOUBLE PRECISION NOT NULL,
+    "btcValue" DOUBLE PRECISION NOT NULL,
+    "ethBalance" DOUBLE PRECISION NOT NULL,
+    "ethPrice" DOUBLE PRECISION NOT NULL,
+    "ethValue" DOUBLE PRECISION NOT NULL,
+    "totalValue" DOUBLE PRECISION NOT NULL,
+
+    CONSTRAINT "BalanceSnapshot_pkey" PRIMARY KEY ("id")
+);

@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { MaxModule } from './max/max.module';
+import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
   imports: [
@@ -10,6 +11,7 @@ import { MaxModule } from './max/max.module';
       isGlobal: true,
       envFilePath: ['.env', '../.env'],
     }),
+    PrismaModule,
     MaxModule,
   ],
   controllers: [AppController],

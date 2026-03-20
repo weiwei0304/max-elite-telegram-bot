@@ -1,25 +1,36 @@
 ---
-description: MAX 精英賽 Telegram 機器人專案：目標、技術棧與約定
+description: MAX 精英賽 Telegram 機器人專案：架構、技術棧與 AI 學習目標
 alwaysApply: true
 ---
 
 # 專案概述
 
 - **名稱**：max-elite-telegram-bot
-- **目標**：因應 MAX 8 週年精英組競賽，定時推送 MAX 帳戶餘額與市價到 Telegram；之後擴充為學習專案（Python 爬蟲／情緒、NestJS、React+TS 儀表板），全部使用免費方案。
+- **目標**：從定時推送 MAX 帳戶餘額與市價起步，擴充為「具備 RAG (檢索增強生成) 與 Embedding 能力的 AI 應用學習專案」。
+- **核心原則**：全程使用「完全免費」方案進行開發與部署。
 
-# 技術棧（現況與規劃）
+# 系統架構與分工
 
-- **現有**：Node.js、dotenv、max-exchange-api-node、Telegram Bot API；本機 `send-balance.js` 每 10 分鐘發送餘額+市價。
-- **規劃**：Python（爬新聞、情緒／輕量模型）、NestJS（後端 API、定時任務）、React+TS（儀表板）；部署用 GitHub Actions、Vercel、Render、Supabase/Neon，皆免費。
+本專案採用微服務雛形架構，各模組職責明確：
+
+1. **排程執行器 (GitHub Actions)**
+   - 負責定時觸發推播任務（目前每 2 小時）。
+   - 執行根目錄的 `send-balance.js` 腳本。
+2. **資料與邏輯中心 (NestJS 後端 - 部署於 Render)**
+   - 負責與 MAX API 溝通（取得餘額 `/balance`、市價 `/tickers`）。
+   - 負責組裝 Telegram 訊息格式（`/telegram/message`）。
+   - 未來作為資料庫讀寫、前端儀表板的資料提供者。
+3. **AI 與爬蟲處理層 (Python - 未來擴充)**
+   - 負責爬取幣圈新聞。
+   - 處理 Embedding（向量化）並存入向量資料庫。
+   - 實作 RAG 邏輯，結合 LLM（如 Gemini API）回答 Telegram 提問。
+4. **資料庫層 (Supabase / pgvector - 未來擴充)**
+   - 儲存歷史餘額、市價。
+   - 儲存新聞向量資料供 RAG 檢索使用。
 
 # 約定與習慣
 
-- 金鑰與敏感資訊：僅放在 `.env` 或 GitHub Secrets，絕不寫進程式碼或 commit。
-- try-catch：先寫 `try { ... } catch (err) { console.error('錯誤:', err.message); }` 骨架，再在 try 內填邏輯；變數名從文件複製避免拼錯（如 `accessKey`、`max`）。
-- 新增功能時，優先考慮「完全免費」方案與各服務的免費額度（例如 Actions 排程勿過密）。
-
-# 重要檔案
-
-- `send-balance.js`：讀 .env → 呼叫 MAX 私人 API 取餘額、公開 API 取市價 → 組訊息 → 發 Telegram；含 setInterval 每 10 分鐘。上線時可改為「只執行一次」由 GitHub Actions 或 Nest 排程觸發。
-- `.env`：TELEGRAM_BOT_TOKEN、TELEGRAM_CHAT_ID、MAX_ACCESS_KEY、MAX_SECRET_KEY（已列入 .gitignore）。
+- **金鑰與敏感資訊**：絕對不 commit。本機放 `.env`，雲端放 GitHub Secrets 或 Render Environment Variables。
+- **單一資料來源**：`send-balance.js` 不再直接呼叫 MAX API，而是向 NestJS 取得組裝好的資料。
+- **錯誤處理**：優先使用 `try-catch` 骨架；讀取環境變數時優先使用 `getOrThrow` 提早暴露錯誤。
+- **免費額度控管**：Actions 排程勿過密，注意 Render 休眠機制的冷啟動時間。
