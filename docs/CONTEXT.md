@@ -24,7 +24,7 @@
 
 - [x] **申請 Supabase**：建立免費的 PostgreSQL 資料庫，並確認支援 `pgvector` 擴充功能。
 - [x] **ORM 串接**：在 NestJS 中引入 Prisma 或 TypeORM，連線至 Supabase。
-- [ ] **資產快照 (Snapshot)**：將每次定時抓到的「帳戶餘額與市價」寫入資料庫，建立歷史時間序列資料。
+- [x] **資產快照 (Snapshot)**：將每次定時抓到的「帳戶餘額與市價」寫入資料庫，建立歷史時間序列資料。
 
 ### 🟠 階段三：Python 爬蟲與 Embedding (AI 基礎建立)
 

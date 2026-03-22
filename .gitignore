@@ -16,10 +16,10 @@ backend/.env
 node_modules/
 
 # 若之後用 Python 可取消註解
-# __pycache__/
-# .venv/
-# venv/
-# *.pyc
+__pycache__/
+.venv/
+venv/
+*.pyc
 
 # 系統與編輯器
 .DS_Store
