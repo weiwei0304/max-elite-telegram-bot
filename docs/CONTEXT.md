@@ -8,31 +8,33 @@
 
 - 已完成階段一（NestJS + Render + GitHub Actions 排程 + Telegram 推播）。
 - 已完成階段二（Supabase + Prisma + Balance Snapshot 落地）。
-- 已建立 `ai-service`，並新增 `fetch_feed.py` 可成功：
-  - 讀取 Coindesk RSS
-  - 印出前幾筆新聞 metadata
-  - 抓第一篇文章 HTML
-  - 用 BeautifulSoup 清理後抽出正文預覽
+- 已完成階段三前半段：
+  - `fetch_feed.py` 重構為函式化（`build_request`、`fetch_rss`、`fetch_article_html`、`extract_text_from_html`、`save_articles`、`main`）
+  - Supabase 建立 `news_articles` 資料表（含 url UNIQUE 防重複）
+  - Python 透過 `psycopg2` + `.env` 連線 Supabase
+  - 抓 Coindesk RSS 全部文章並寫入資料庫，重複執行安全（ON CONFLICT DO NOTHING）
 
 ### 目前狀態判斷
 
-- 階段三「Python 爬蟲與 Embedding」已開始，但還在 PoC（原型驗證）階段。
-- 目前 `fetch_feed.py` 仍是單檔腳本，尚未模組化/排程化，也還沒寫入資料庫。
+- 階段三「爬蟲入庫」已完成，資料可穩定累積。
+- 尚未做 chunking、embedding、pgvector。
+- 尚未排程化（還是手動跑）。
 
 ### 你下次回來建議直接做
 
-1. 把 `ai-service/fetch_feed.py` 拆成可重用函式（`fetch_rss`、`fetch_article`、`extract_text`）。
-2. 新增資料表（例如 `news_articles`）儲存：`source`、`title`、`url`、`published_at`、`content`。
-3. 先完成「文章入庫」再做 embedding（避免一次改太多）。
-4. 文章入庫穩定後，再串 Gemini embedding + `pgvector` 欄位。
+1. **資料品質檢查**：進 Supabase 隨機看幾筆 `content`，確認文字乾淨沒有殘留 UI 文字。
+2. **chunking**：把每篇 `content` 切成固定長度段落（建議 500 字、overlap 50 字）。
+3. 串 **Gemini embedding API**，把每個 chunk 轉成向量。
+4. 在 `news_articles` 或新表加 `embedding vector(768)` 欄位，寫入向量。
 5. 最後才接 RAG 查詢流程到 Telegram 問答。
 
 ### 已知待處理事項（技術債）
 
-- 目前僅抓 Coindesk 單一來源，之後要擴充來源與去重策略。
+- 目前僅抓 Coindesk 單一來源，之後要擴充來源。
 - 內文清理邏輯偏粗略，可能殘留導覽文字或廣告片段。
-- 還沒有重試機制、錯誤分類、結構化 log。
+- 還沒有 HTTP 重試機制（單篇抓取失敗只是跳過）。
 - 還沒有把 Python service 放進排程（GitHub Actions 或 Render Cron）。
+- `test_db.py` 是臨時測試檔，之後可以刪除。
 
 本專案（max-elite-telegram-bot）的終極目標是打造一個**「具備 RAG (檢索增強生成) 與 Embedding 能力的個人化加密貨幣 AI 助手」**。
 同時，這也是一個為轉職「AI 應用工程師」量身打造的實戰練習場，且**全程嚴格採用免費方案**。
@@ -65,7 +67,7 @@
 **目標**：開始接觸 AI 應用核心技術，建立外部知識庫。
 
 - [x] **建立 Python 微服務**：已新增 `ai-service` 資料夾。
-- [~] **新聞爬蟲**：已完成 RSS + 單篇文章抓取 PoC（`ai-service/fetch_feed.py`），待排程化與多來源擴充。
+- [x] **新聞爬蟲**：函式化重構完成，抓取 Coindesk RSS 全部文章並寫入 Supabase，支援去重。
 - [ ] **文本清理與分塊 (Chunking)**：將新聞長文切分成適合 AI 處理的段落。
 - [ ] **Embedding (向量化)**：呼叫 Google Gemini API (Free tier) 將新聞段落轉換為向量 (Vector)。
 - [ ] **寫入向量資料庫**：將向量與原文對應存入 Supabase 的 `pgvector` 資料表中。
