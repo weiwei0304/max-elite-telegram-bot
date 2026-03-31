@@ -8,32 +8,36 @@
 
 - 已完成階段一（NestJS + Render + GitHub Actions 排程 + Telegram 推播）。
 - 已完成階段二（Supabase + Prisma + Balance Snapshot 落地）。
-- 已完成階段三前半段：
-  - `fetch_feed.py` 重構為函式化（`build_request`、`fetch_rss`、`fetch_article_html`、`extract_text_from_html`、`save_articles`、`main`）
-  - Supabase 建立 `news_articles` 資料表（含 url UNIQUE 防重複）
-  - Python 透過 `psycopg2` + `.env` 連線 Supabase
-  - 抓 Coindesk RSS 全部文章並寫入資料庫，重複執行安全（ON CONFLICT DO NOTHING）
+- 已完成階段三全部：
+  - `fetch_feed.py`：抓 Coindesk RSS → 清理正文 → 寫入 `news_articles`（去重）
+  - `chunk_news_articles.py`：把文章切成 250 詞 / overlap 50 詞的 chunk，寫入 `news_article_chunks`
+  - `embed_chunks.py`：用 Gemini `gemini-embedding-001` 產生 3072 維向量，寫入 `news_article_chunks.embedding`（`vector(3072)`）
+  - 整條管線手動跑通，159 個 chunk 全部 embedding 完成
 
 ### 目前狀態判斷
 
-- 階段三「爬蟲入庫」已完成，資料可穩定累積。
-- 尚未做 chunking、embedding、pgvector。
-- 尚未排程化（還是手動跑）。
+- 階段三「爬蟲 → chunking → embedding」完整跑通。
+- 向量已存進 Supabase pgvector，可以做相似度搜尋。
+- 下一步是 RAG 查詢 + Telegram 問答（階段四）。
+- 尚未排程化（三支腳本都還是手動跑）。
 
 ### 你下次回來建議直接做
 
-1. **資料品質檢查**：進 Supabase 隨機看幾筆 `content`，確認文字乾淨沒有殘留 UI 文字。
-2. **chunking**：把每篇 `content` 切成固定長度段落（建議 500 字、overlap 50 字）。
-3. 串 **Gemini embedding API**，把每個 chunk 轉成向量。
-4. 在 `news_articles` 或新表加 `embedding vector(768)` 欄位，寫入向量。
-5. 最後才接 RAG 查詢流程到 Telegram 問答。
+1. 在 Supabase 啟用 `pgvector` 的 `ivfflat` 或 `hnsw` 索引（加速向量搜尋）。
+2. 新增 `rag_query.py`：
+   - 輸入一個問題字串
+   - 對問題做 embedding
+   - 用 `<=>` 做相似度搜尋，撈出最相關的 5 個 chunk
+   - 把 chunk + 問題組成 Prompt 傳給 Gemini LLM
+   - 回傳答案
+3. 把 `rag_query.py` 串進 Telegram Bot（Webhook 或 long polling）。
+4. 最後把三支腳本（fetch + chunk + embed）放進 GitHub Actions 排程。
 
 ### 已知待處理事項（技術債）
 
-- 目前僅抓 Coindesk 單一來源，之後要擴充來源。
-- 內文清理邏輯偏粗略，可能殘留導覽文字或廣告片段。
-- 還沒有 HTTP 重試機制（單篇抓取失敗只是跳過）。
-- 還沒有把 Python service 放進排程（GitHub Actions 或 Render Cron）。
+- 目前僅抓 Coindesk 單一來源，之後要擴充。
+- 內文清理邏輯偏粗略，可能殘留導覽文字。
+- 三支腳本都還是手動跑，尚未排程化。
 - `test_db.py` 是臨時測試檔，之後可以刪除。
 
 本專案（max-elite-telegram-bot）的終極目標是打造一個**「具備 RAG (檢索增強生成) 與 Embedding 能力的個人化加密貨幣 AI 助手」**。
@@ -68,9 +72,9 @@
 
 - [x] **建立 Python 微服務**：已新增 `ai-service` 資料夾。
 - [x] **新聞爬蟲**：函式化重構完成，抓取 Coindesk RSS 全部文章並寫入 Supabase，支援去重。
-- [ ] **文本清理與分塊 (Chunking)**：將新聞長文切分成適合 AI 處理的段落。
-- [ ] **Embedding (向量化)**：呼叫 Google Gemini API (Free tier) 將新聞段落轉換為向量 (Vector)。
-- [ ] **寫入向量資料庫**：將向量與原文對應存入 Supabase 的 `pgvector` 資料表中。
+- [x] **文本清理與分塊 (Chunking)**：`chunk_news_articles.py` 完成，250 詞 / overlap 50 詞。
+- [x] **Embedding (向量化)**：`embed_chunks.py` 完成，使用 Gemini `gemini-embedding-001`，3072 維向量。
+- [x] **寫入向量資料庫**：向量存入 `news_article_chunks.embedding`（`vector(3072)`）。
 
 ### 🔴 階段四：RAG 檢索增強生成 (最終目標)
 
